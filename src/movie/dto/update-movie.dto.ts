@@ -51,7 +51,7 @@ export class UpdateMovieDto {
     // @IsIn(['action', 'fantasy']) // 이 배열안에 있는 것만 가능
     // @IsNotIn(['action', 'fantasy']) // 이 배열안에 있는 것만 안됌
 
-    // type value 
+    // !type value 
     // @IsBoolean() // true, false만 가능
     // @IsString() // 글자만 가능
     // @IsNumber() // 숫자만 가능
