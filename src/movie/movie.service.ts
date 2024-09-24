@@ -4,7 +4,7 @@ import { UpdateMovieDto } from './dto/update-movie.dto';
 import { Movie } from './entity/movie.entity';
 import { number } from 'joi';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 
 @Injectable()
 export class MovieService {
@@ -14,15 +14,18 @@ export class MovieService {
     private readonly movieRepository: Repository<Movie>
   ){}
 
-  getManyMovies(title?: string){
-    // 나중에 title 필터 기능 추가하기
-    return this.movieRepository.find();
+  async getManyMovies(title?: string){
+    // title 없을 때 조건, count 적용 
+    if(!title) {
+      return [await this.movieRepository.find(), await this.movieRepository.count()];
+    }
 
-    // if(!title){
-    //   return this.movies;
-    // }
-
-    // return this.movies.filter(m => m.title.startsWith(title));
+    // title 있을 때 조건 필터 적용
+    return this.movieRepository.findAndCount({
+      where:{
+        title: Like(`%${title}%`),
+      },
+    });
   }
   
   async getMovieById(id: number){
