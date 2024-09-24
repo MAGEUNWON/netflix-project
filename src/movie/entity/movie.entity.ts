@@ -1,20 +1,13 @@
-import { Exclude, Expose, Transform } from "class-transformer";
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn, VersionColumn } from "typeorm";
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BaseTable } from "./base.entity";
+import { MovieDetail } from "./movie-detail.entity";
 
-// @Exclude() // 직렬화하는 과정에서 값을 노출시키지 않는것. 이렇게 class 위에 두면 전체가 기본으로 다 노출 안됨. 보안 등 민감한 부분에 쓸 수 있음. 
-// export class Movie {
-//     // @Expose() // 전체 다 Exclude 했다가 그 중에 보여도 되는 것들은 Expose 하면 외부에 노출 됨
-//     id: number;
-//     // @Expose()
-//     title: string;
-//     // @Transform( // custom transformer 
-//     //     ({value}) => value.toString().toUpperCase(),
-//     // )
-//     genre: string;
-// }
+// ManyToOne -> Director (감독은 여러개의 영화를 만들 수 있음)
+// OneToOne -> MovieDetail (영화는 하나의 상세 내용을 가질 수 있음)
+// ManyToMany -> Genre (영화는 여러개의 장르를 가질 수 있고 장르는 여러개의 영화에 속할 수 있음)
 
 @Entity()  // entity 파일에서 테이블을 생성하는 역할을함. Entity()를 꼭 등록해줘야 테이블이 생김. 
-export class Movie {
+export class Movie extends BaseTable {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -22,14 +15,12 @@ export class Movie {
     title: string;
 
     @Column()
-    genre: string;
+    genre: string; 
 
-    @CreateDateColumn()
-    createdAt: Date;
+    @OneToOne(
+        () => MovieDetail,
+    )
+    @JoinColumn()
+    detail: MovieDetail;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
-
-    @VersionColumn()
-    version: number;
-}
+} 
