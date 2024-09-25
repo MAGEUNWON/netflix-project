@@ -19,6 +19,10 @@ export class Movie extends BaseTable {
 
     @OneToOne(
         () => MovieDetail,
+        movieDetail => movieDetail.id,
+        {
+            cascade: true, // 이 설정을 true로 하면 Movie를 만들때 MovieDetail 테이블까지 전부 다 만들 수 있게 해주라는 설정(한번에 데이터를 생성할 수 있음)
+        }
     )
     @JoinColumn()
     detail: MovieDetail;

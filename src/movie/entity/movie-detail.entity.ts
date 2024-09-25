@@ -11,6 +11,7 @@ export class MovieDetail{
 
     @OneToOne(
         () => Movie,
+        movie => movie.id,
     )
     movie: Movie;
 }
