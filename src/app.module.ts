@@ -5,6 +5,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi';
 import { Movie } from './movie/entity/movie.entity';
 import { MovieDetail } from './movie/entity/movie-detail.entity';
+import { DirectorModule } from './director/director.module';
+import { Director } from './director/entitiy/director.entity';
 
 // app.module은 중앙화의 역할만 함. app.service, app.controller도 직접 쓰기보단 모듈화로 처리
 @Module({
@@ -32,7 +34,8 @@ import { MovieDetail } from './movie/entity/movie-detail.entity';
           database: configService.get<string>('DB_DATABASE'),
           entities: [ // 여기에 만들어둔 Entity 등록해줘야 테이블 생성 됨
             Movie,
-            MovieDetail, 
+            MovieDetail,
+            Director, 
           ],
           synchronize: true,  // 자동으로 코드와 맞게 데이터베이스를 싱크시키라는 것. 때문에 개발할때만 true로 해주고 production에서는 false로 함. production에서 싱크 맞추는 것은 마이그레이션에서 함
       }),
@@ -48,7 +51,8 @@ import { MovieDetail } from './movie/entity/movie-detail.entity';
     //   entities: [],
     //   synchronize: true,  // 자동으로 코드와 맞게 데이터베이스를 싱크시키라는 것. 때문에 개발할때만 true로 해주고 production에서는 false로 함. production에서 싱크 맞추는 것은 마이그레이션에서 함
     // }),
-    MovieModule
+    MovieModule,
+    DirectorModule
   ],
 })
 export class AppModule {}
