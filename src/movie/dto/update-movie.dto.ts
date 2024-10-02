@@ -19,4 +19,7 @@ export class UpdateMovieDto {
     @IsOptional()
     detail?: string;
 
+    @IsNotEmpty()
+    @IsOptional()
+    directorId?: number;
 }
