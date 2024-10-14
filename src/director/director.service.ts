@@ -41,7 +41,7 @@ export class DirectorService {
     });
     
     if(!director) {
-      throw new NotFoundException('존재하지 않는 ID의 영화입니다.')
+      throw new NotFoundException('존재하지 않는 감독입니다.')
     }
 
     await this.directorRepository.update(
@@ -59,7 +59,7 @@ export class DirectorService {
       },
     });
 
-    return
+    return newDirector
   }
 
   // 감독 삭제하기
