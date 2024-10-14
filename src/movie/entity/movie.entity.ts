@@ -12,7 +12,9 @@ export class Movie extends BaseTable {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({
+        unique: true, // unique를 ture로 해주면 한 테이블에 같은 값이 두개가 존재할 수 없도록 제약을 줄 수 있음. 
+    })
     title: string;
 
     @Column()
@@ -24,6 +26,7 @@ export class Movie extends BaseTable {
         movieDetail => movieDetail.id,
         {
             cascade: true, // 이 설정을 true로 하면 Movie를 만들때 MovieDetail 테이블까지 전부 다 만들 수 있게 해주라는 설정(한번에 데이터를 생성할 수 있음)
+            nullable: false, // 이 설정을 false로 해주면 null이 절대 될 수 없도록 해줌. 이렇게 해줘야 무결성을 지키면서 할 수 있음
         }
     )
     @JoinColumn()
@@ -35,6 +38,7 @@ export class Movie extends BaseTable {
         director => director.id,
         {
             cascade: true,
+            nullable: false,
         }
     )
     director: Director;

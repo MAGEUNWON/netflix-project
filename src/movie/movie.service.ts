@@ -27,7 +27,9 @@ export class MovieService {
   async findAll(title?: string){
     // title 없을 때 조건, count 적용 
     if(!title) {
-      return [await this.movieRepository.find(), await this.movieRepository.count()];
+      return [await this.movieRepository.find({
+        relations: ['director'],
+      }), await this.movieRepository.count()];
     }
 
     // title 있을 때 조건 필터 적용
@@ -35,6 +37,7 @@ export class MovieService {
       where:{
         title: Like(`%${title}%`),
       }, // 여기선 보통 detail을 가져오지는 않음. 
+      relations: ['director'],
     }); 
   }
   
@@ -44,14 +47,14 @@ export class MovieService {
       where:{
         id,
       },
-      relations: ['detail'] // detail 값까지 가져오려면 Text로 relation 안에 넣어주면 됨
+      relations: ['detail', 'director'] // detail 값까지 가져오려면 Text로 relation 안에 넣어주면 됨
     }); // detail은 보통 전체 리스트에서 보다는 특정 값을 가져올때 나오게 함. 주로 상세페이지에서 사용 
 
     if(!movie) {
       throw new NotFoundException('존재하지 않는 ID의 영화입니다.');
     }
 
-    return movie;
+    return movie; 
   }
 
   // Movie data 생성
