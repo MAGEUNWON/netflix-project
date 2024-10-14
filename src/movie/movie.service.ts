@@ -24,7 +24,7 @@ export class MovieService {
   ){}
 
   // 전체 값 가져오기
-  async getManyMovies(title?: string){
+  async findAll(title?: string){
     // title 없을 때 조건, count 적용 
     if(!title) {
       return [await this.movieRepository.find(), await this.movieRepository.count()];
@@ -39,7 +39,7 @@ export class MovieService {
   }
   
   // 특정 값 가져오기
-  async getMovieById(id: number){
+  async findOne(id: number){
     const movie = await this.movieRepository.findOne({
       where:{
         id,
@@ -55,7 +55,7 @@ export class MovieService {
   }
 
   // Movie data 생성
-  async createMovie(createMovieDto: CreateMovieDto){
+  async create(createMovieDto: CreateMovieDto){
     // ! movie entity에서 casecade를 true 설정 하면 이 부분 안만들고 detail에서 한번에 처리 가능함
     // const movieDetail = await this.movieDetailRepository.save({
     //   detail: createMovieDto.detail
@@ -85,7 +85,7 @@ export class MovieService {
 
   
   // Movie data 업데이트
-  async updateMovie(id: number, updateMovieDto: UpdateMovieDto){
+  async update(id: number, updateMovieDto: UpdateMovieDto){
     const movie = await this.movieRepository.findOne({
       where:{
         id,
@@ -162,7 +162,7 @@ export class MovieService {
   }
 
   // Movie Data 삭제
-  async deleteMovie(id: number){
+  async remove(id: number){
 
     const movie = await this.movieRepository.findOne({
       where:{
