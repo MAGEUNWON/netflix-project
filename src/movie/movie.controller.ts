@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, ClassSerializerInterceptor } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, ClassSerializerInterceptor, ParseIntPipe, BadRequestException, NotAcceptableException, ParseFloatPipe, ParseBoolPipe, ParseArrayPipe, ParseUUIDPipe } from '@nestjs/common';
 import { MovieService } from './movie.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
@@ -17,8 +17,9 @@ export class MovieController {
   }
 
   @Get(':id')
-  getMovie(@Param('id') id: string){
-    return this.movieService.findOne(+id);
+  getMovie(@Param('id', ParseIntPipe) id: number, 
+  ){
+    return this.movieService.findOne(id);
   }
 
   @Post()
@@ -33,7 +34,7 @@ export class MovieController {
 
   @Patch(':id')
   patchMovie(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: string,
     @Body() body: UpdateMovieDto
   ){
     return this.movieService.update(
@@ -44,7 +45,7 @@ export class MovieController {
 
   @Delete(':id')
   deleteMovie(
-    @Param('id') id:string,
+    @Param('id', ParseIntPipe) id:string,
   ){
     return this.movieService.remove(
       +id
