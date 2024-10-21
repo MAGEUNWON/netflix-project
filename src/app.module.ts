@@ -9,6 +9,9 @@ import { DirectorModule } from './director/director.module';
 import { Director } from './director/entitiy/director.entity';
 import { GenreModule } from './genre/genre.module';
 import { Genre } from './genre/entity/genre.entity';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
+import { User } from './user/entities/user.entity';
 
 // app.module은 중앙화의 역할만 함. app.service, app.controller도 직접 쓰기보단 모듈화로 처리
 @Module({
@@ -39,6 +42,7 @@ import { Genre } from './genre/entity/genre.entity';
             MovieDetail,
             Director, 
             Genre,
+            User,
           ],
           synchronize: true,  // 자동으로 코드와 맞게 데이터베이스를 싱크시키라는 것. 때문에 개발할때만 true로 해주고 production에서는 false로 함. production에서 싱크 맞추는 것은 마이그레이션에서 함
       }),
@@ -56,7 +60,9 @@ import { Genre } from './genre/entity/genre.entity';
     // }),
     MovieModule,
     DirectorModule,
-    GenreModule
+    GenreModule,
+    AuthModule,
+    UserModule
   ],
 })
 export class AppModule {}
