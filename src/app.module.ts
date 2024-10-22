@@ -25,7 +25,8 @@ import { User } from './user/entities/user.entity';
         DB_PORT: Joi.number().required(), // number인데 필수값이다 라는 뜻.
         DB_USERNAME: Joi.string().required(), 
         DB_PASSWORD: Joi.string().required(),
-        DB_DATABASE: Joi.string().required()
+        DB_DATABASE: Joi.string().required(),
+        HASH_ROUNDS: Joi.number().required(),
       }),
     }), // env 파일과 연동하기 위해 씀
     // 데이터베이스와 연결하기 위한 것
