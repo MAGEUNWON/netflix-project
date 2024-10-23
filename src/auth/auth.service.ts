@@ -4,7 +4,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
-import { number } from 'joi';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +12,7 @@ export class AuthService {
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
         private readonly configService: ConfigService,
+        private readonly jwtService: JwtService,
     ){}
 
     // basic token을 받으면 rawToken -> "Basic $token"모양으로 생김
@@ -50,6 +51,7 @@ export class AuthService {
         }
     }
 
+    // 인증 기능
     // rawToken -> "Basic $token"모양으로 생김. 
     async register(rawToken: string){
         const {email, password} = this.parseBasicToken(rawToken);
@@ -82,5 +84,50 @@ export class AuthService {
                 email,
             },
         });
+    }
+
+    // login 기능
+    async login(rawToken: string){
+        const {email, password} = this.parseBasicToken(rawToken);
+
+        const user = await this.userRepository.findOne({
+            where:{
+                email,
+            },
+        });
+
+        if(!user){
+            throw new BadRequestException('잘못된 로그인 정보입니다!');
+        }
+
+        // 정확한 비빌번호가 만들어졌는지 비교하는 용도
+        const passOk = await bcrypt.compare(password, user.password); // password는 암호화가 안된 상태고 user.password는 암호화가 된 상태
+
+        if(!passOk){
+            throw new BadRequestException('잘못된 로그인 정보입니다!');
+        }
+        
+        const refreshTokenSecret = this.configService.get<string>('REFRESH_TOKEN_SECRET');
+        const accessTokenSecret = this.configService.get<string>('ACCESS_TOKEN_SECRET');
+
+        return {
+            refreshToken: await this.jwtService.signAsync({
+                // payload
+                sub: user.id,
+                role: user.role,
+                type: 'refresh',
+            }, {
+                secret: refreshTokenSecret,
+                expiresIn: '24h'
+            }),
+            accessToken: await this.jwtService.signAsync({
+                sub: user.id,
+                role: user.role,
+                type: 'access',
+            }, {
+                secret: accessTokenSecret,
+                expiresIn: 300  // accessToken은 유효기간을 짧게 해주는게 좋음 
+            }),
+        }
     }
 }

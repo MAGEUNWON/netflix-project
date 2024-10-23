@@ -10,4 +10,9 @@ export class AuthController {
   registerUser(@Headers('authorization') token: string){ // Headers는 기본으로 쓰이는 Headers도 따로 있기 때문에 꼭 @nestjs/common에 직접 import 해줘야 함. 
     return this.authService.register(token);
   }
+
+  @Post('login')
+  loginUser(@Headers('authorization') token: string){
+    return this.authService.login(token);
+  }
 }

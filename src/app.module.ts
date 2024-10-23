@@ -27,6 +27,9 @@ import { User } from './user/entities/user.entity';
         DB_PASSWORD: Joi.string().required(),
         DB_DATABASE: Joi.string().required(),
         HASH_ROUNDS: Joi.number().required(),
+        ACCESS_TOKEN_SECRET: Joi.string().required(),
+        REFRESH_TOKEN_SECRET: Joi.string().required(),
+
       }),
     }), // env 파일과 연동하기 위해 씀
     // 데이터베이스와 연결하기 위한 것
