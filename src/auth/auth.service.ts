@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/user/entities/user.entity';
+import { Role, User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
@@ -28,7 +28,11 @@ export class AuthService {
             throw new BadRequestException('토큰 포멧이 잘못됐습니다!')
         }
 
-        const [_, token] = basicSplit;
+        const [basic, token] = basicSplit;
+
+        if(basic.toLowerCase() !== 'basic') {
+            throw new BadRequestException('토큰 포멧이 잘못됐습니다!');
+        }
 
         // 2) 추출한 토큰을 base64 디코딩해서 이메일과 비밀번호로 나누기
         // 디코딩 하는 방법은 그냥 아래 방식으로 외우면 됨 
@@ -51,7 +55,46 @@ export class AuthService {
         }
     }
 
-    // 인증 기능
+    
+    // access token 재발급 기능
+    async parseBearerToken(rawToken: string, isRefreshToken: boolean){
+        const basicSplit = rawToken.split(' ');
+
+        // 길이 확인. basic token 정상적으로 들어왔다면 ' ' 기준으로 스플릿 했을 때 
+        // ['Basic', '$token'] 이렇게 길이가 2개로 나와야 함. 그래서 길이가 2인지 확인해 줄 것
+        if(basicSplit.length !== 2){
+            throw new BadRequestException('토큰 포멧이 잘못됐습니다!')
+        }
+
+        const [bearer, token] = basicSplit;
+
+
+        if(bearer.toLowerCase() !== 'bearer') {
+            throw new BadRequestException('토큰 포멧이 잘못됐습니다!');
+        }
+
+        // token 검증
+        // jwtService.decode를 쓰면 토큰 만료나 비밀번호 검증은 안하고 payload만 가져오는 것임
+        // jwtService.verifyAsync를 쓰면 payload를 가져오는 동시에 검증까지 해주는 기능임 
+        const payload = await this.jwtService.verifyAsync(token, {
+            secret: this.configService.get<string>('REFRESH_TOKEN_SECRET')
+        });
+
+        if(isRefreshToken){
+            if(payload.type !== 'refresh'){
+                throw new BadRequestException('Refresh 토큰을 입력해주세요!')
+            }
+        }else{
+            if(payload.type !== 'access'){
+                throw new BadRequestException('access 토큰을 입력해주세요!')
+            }
+        }
+
+        return payload;
+    }
+
+
+    // 회원 가입 기능(등록 기능)
     // rawToken -> "Basic $token"모양으로 생김. 
     async register(rawToken: string){
         const {email, password} = this.parseBasicToken(rawToken);
@@ -86,6 +129,7 @@ export class AuthService {
         });
     }
 
+    // 로그인 정보 확인 함수(인증 기능)
     async authenticate(email: string, password: string){
         const user = await this.userRepository.findOne({
             where:{
@@ -107,7 +151,9 @@ export class AuthService {
         return user;
     }
 
-    async issueToken(user: User, isRefreshToken: boolean){
+
+    // access token, refresh token 발급 기능
+    async issueToken(user: {id:number, role: Role} , isRefreshToken: boolean){
         const refreshTokenSecret = this.configService.get<string>('REFRESH_TOKEN_SECRET');
         const accessTokenSecret = this.configService.get<string>('ACCESS_TOKEN_SECRET');
 
@@ -121,6 +167,7 @@ export class AuthService {
             expiresIn: isRefreshToken ? '24h' : 300,
         })
     }
+
 
     // login 기능
     async login(rawToken: string){
