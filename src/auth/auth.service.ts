@@ -1,10 +1,12 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role, User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { envVariableKeys } from 'src/common/const/env.const'; 
+
 
 @Injectable()
 export class AuthService {
@@ -56,7 +58,7 @@ export class AuthService {
     }
 
     
-    // access token 재발급 기능
+    // Bearer Token 검증기능(refresh token 검증 용도)
     async parseBearerToken(rawToken: string, isRefreshToken: boolean){
         const basicSplit = rawToken.split(' ');
 
@@ -73,24 +75,29 @@ export class AuthService {
             throw new BadRequestException('토큰 포멧이 잘못됐습니다!');
         }
 
-        // token 검증
-        // jwtService.decode를 쓰면 토큰 만료나 비밀번호 검증은 안하고 payload만 가져오는 것임
-        // jwtService.verifyAsync를 쓰면 payload를 가져오는 동시에 검증까지 해주는 기능임 
-        const payload = await this.jwtService.verifyAsync(token, {
-            secret: this.configService.get<string>('REFRESH_TOKEN_SECRET')
-        });
+        try{
+            // token 검증
+            // jwtService.decode를 쓰면 토큰 만료나 비밀번호 검증은 안하고 payload만 가져오는 것임
+            // jwtService.verifyAsync를 쓰면 payload를 가져오는 동시에 검증까지 해주는 기능임 
+            const payload = await this.jwtService.verifyAsync(token, {
+                secret: this.configService.get<string>(envVariableKeys.refreshTokenSecret)
+            });
 
-        if(isRefreshToken){
-            if(payload.type !== 'refresh'){
-                throw new BadRequestException('Refresh 토큰을 입력해주세요!')
+            if(isRefreshToken){
+                if(payload.type !== 'refresh'){
+                    throw new BadRequestException('refresh 토큰을 입력해주세요!')
+                }
+            }else{
+                if(payload.type !== 'access'){
+                    throw new BadRequestException('access 토큰을 입력해주세요!')
+                }
             }
-        }else{
-            if(payload.type !== 'access'){
-                throw new BadRequestException('access 토큰을 입력해주세요!')
-            }
+    
+            return payload;
+
+        }catch(e){
+            throw new UnauthorizedException('토큰이 만료됐습니다!')
         }
-
-        return payload;
     }
 
 
@@ -114,7 +121,7 @@ export class AuthService {
         // hash(hash하고 싶은 비밀번호, salt or rounds) 여기선 Rounds 넣어 줄 것.
         // rounds는 숫자가 올라갈 수록 bcrypt가 hashing 하는 속도가 더 오래 걸리게 됨. roudns를 넣어주면 salt는 자동으로 생성 됨
         // roudns는 따로 .env 파일에 넣어 줌.  
-        const hash = await bcrypt.hash(password, this.configService.get<number>('HASH_ROUNDS')) 
+        const hash = await bcrypt.hash(password, this.configService.get<number>(envVariableKeys.hashRounds)) 
         
         // 이렇게 하면 비밀번호 원본은 날라가게 되고 hash한 값만 저장됨 
         await this.userRepository.save({
@@ -131,6 +138,7 @@ export class AuthService {
 
     // 로그인 정보 확인 함수(인증 기능)
     async authenticate(email: string, password: string){
+        // 가입된 user인지 확인하는 용도
         const user = await this.userRepository.findOne({
             where:{
                 email,
@@ -141,7 +149,7 @@ export class AuthService {
             throw new BadRequestException('잘못된 로그인 정보입니다!');
         }
 
-        // 정확한 비빌번호가 만들어졌는지 비교하는 용도
+        // 정확한 비빌번호가 입력되었는지 비교하는 용도
         const passOk = await bcrypt.compare(password, user.password); // password는 암호화가 안된 상태고 user.password는 암호화가 된 상태
 
         if(!passOk){
@@ -153,9 +161,9 @@ export class AuthService {
 
 
     // access token, refresh token 발급 기능
-    async issueToken(user: {id:number, role: Role} , isRefreshToken: boolean){
-        const refreshTokenSecret = this.configService.get<string>('REFRESH_TOKEN_SECRET');
-        const accessTokenSecret = this.configService.get<string>('ACCESS_TOKEN_SECRET');
+    async issueToken(user: {id:number, role: Role}, isRefreshToken: boolean){
+        const refreshTokenSecret = this.configService.get<string>(envVariableKeys.refreshTokenSecret);
+        const accessTokenSecret = this.configService.get<string>(envVariableKeys.accessTokenSecret);
 
         return this.jwtService.signAsync({
             // payload
@@ -163,7 +171,7 @@ export class AuthService {
             role: user.role,
             type: isRefreshToken ? 'refresh' : 'access',
         }, {
-            secret: isRefreshToken? refreshTokenSecret : accessTokenSecret,
+            secret: isRefreshToken ? refreshTokenSecret : accessTokenSecret,
             expiresIn: isRefreshToken ? '24h' : 300,
         })
     }

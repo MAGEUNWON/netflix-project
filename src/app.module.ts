@@ -12,6 +12,7 @@ import { Genre } from './genre/entity/genre.entity';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
+import { envVariableKeys } from './common/const/env.const';
 
 // app.module은 중앙화의 역할만 함. app.service, app.controller도 직접 쓰기보단 모듈화로 처리
 @Module({
@@ -35,12 +36,12 @@ import { User } from './user/entities/user.entity';
     // 데이터베이스와 연결하기 위한 것
     TypeOrmModule.forRootAsync({  // config모듈에 설정된 값을 기반으로 연결할것 이기 때문에 비동기로 처리 
       useFactory:(configService: ConfigService) => ({  // 비동기로 넣을때는 useFactory, inject 두개가 들어가야 함, 비동기로 할 땐 ioc container로 ConfigService를 넣어 줄 수 있음
-          type: configService.get<string>('DB_TYPE') as "postgres",
-          host: configService.get<string>('DB_HOST'),
-          port: configService.get<number>('DB_PORT'),
-          username: configService.get<string>('DB_USERNAME'),
-          password: configService.get<string>('DB_PASSWORD'),
-          database: configService.get<string>('DB_DATABASE'),
+          type: configService.get<string>(envVariableKeys.dbType) as "postgres",
+          host: configService.get<string>(envVariableKeys.dbHost),
+          port: configService.get<number>(envVariableKeys.dbPort),
+          username: configService.get<string>(envVariableKeys.dbUsername),
+          password: configService.get<string>(envVariableKeys.dbPassword),
+          database: configService.get<string>(envVariableKeys.dbDatabase),
           entities: [ // 여기에 만들어둔 Entity 등록해줘야 테이블 생성 됨
             Movie,
             MovieDetail,

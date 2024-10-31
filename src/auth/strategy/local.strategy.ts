@@ -18,9 +18,9 @@ export class LocalStrategy extends PassportStrategy(Strategy){
     }
 
     /**
-     * validate는 stratgy에서 제공하는 값으로 실제로 존재하는 사용자인지 검증해주는 것임. 
+     * validate는 strategy에서 제공하는 값으로 실제로 존재하는 사용자인지 검증해주는 것임. 
      * 근데 LocalStrategy는 
-     * 
+     *
      * validate함수에 username, password -> 이 두개의 파라미터를 그냥 넣어주면 됨 
      * 
      * return -> Request(); 반환값을 request 객체에서 받을 수 있음. 
