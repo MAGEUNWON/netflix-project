@@ -80,7 +80,9 @@ export class AuthService {
             // jwtService.decode를 쓰면 토큰 만료나 비밀번호 검증은 안하고 payload만 가져오는 것임
             // jwtService.verifyAsync를 쓰면 payload를 가져오는 동시에 검증까지 해주는 기능임 
             const payload = await this.jwtService.verifyAsync(token, {
-                secret: this.configService.get<string>(envVariableKeys.refreshTokenSecret)
+                secret: this.configService.get<string>(
+                    isRefreshToken ? envVariableKeys.refreshTokenSecret : envVariableKeys.accessTokenSecret,
+                ),
             });
 
             if(isRefreshToken){

@@ -22,11 +22,9 @@ export class AuthController {
 
   // access token 재발급 
   @Post('token/access')
-  async rotateAccessToken(@Headers('authorization') token: string){
-    const payload = await this.authService.parseBearerToken(token, true);
-    
+  async rotateAccessToken(@Request() req){    
     return{
-      accessToken: await this.authService.issueToken(payload, false),
+      accessToken: await this.authService.issueToken(req.user, false),
     }
   } 
 

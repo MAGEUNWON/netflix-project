@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { MovieModule } from './movie/movie.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -13,6 +13,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
 import { envVariableKeys } from './common/const/env.const';
+import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware';
 
 // app.module은 중앙화의 역할만 함. app.service, app.controller도 직접 쓰기보단 모듈화로 처리
 @Module({
@@ -70,4 +71,20 @@ import { envVariableKeys } from './common/const/env.const';
     UserModule
   ],
 })
-export class AppModule {}
+// middleware 쓰기 위해 NestModule 을 implements 해줌
+export class AppModule implements NestModule{
+  // 무조건 configure 필요함.
+  configure(consumer: MiddlewareConsumer) {
+    // 적용할 middleware를 넣어줌
+    consumer.apply(
+      BearerTokenMiddleware,
+    ).exclude({ // login과 register 라우터는 basic 토큰이 들어가기 때문에 BearerTokenMiddleware에서 예외처리 해줌
+      path: 'auth/login',
+      method: RequestMethod.POST,
+    }, {
+      path: 'auth/register',
+      method: RequestMethod.POST,
+    })
+    .forRoutes('*') // '*' 이렇게 하면 전체 라우트에 적용시킨 다는 것
+  }
+}
