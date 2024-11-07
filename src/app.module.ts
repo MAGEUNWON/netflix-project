@@ -14,6 +14,8 @@ import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
 import { envVariableKeys } from './common/const/env.const';
 import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/guard/auth.guard';
 
 // app.module은 중앙화의 역할만 함. app.service, app.controller도 직접 쓰기보단 모듈화로 처리
 @Module({
@@ -70,6 +72,12 @@ import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware
     AuthModule,
     UserModule
   ],
+  providers: [ // 여기에 guard를 설정하면 전체 라우터에 적용됨. 이렇게 되면 Guard가 필요하지 않은 부분에도 적용되는 문제가 있는데 그걸 decorator로 처리해 줌
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    }
+  ]
 })
 // middleware 쓰기 위해 NestModule 을 implements 해줌
 export class AppModule implements NestModule{

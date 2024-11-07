@@ -2,12 +2,14 @@ import { Controller, Post, Headers, Request, UseGuards, Get } from '@nestjs/comm
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './strategy/local.strategy';
 import { JwtAuthGuard } from './strategy/jwt.strategy';
+import { Public } from './decorator/public.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   // 회원 가입
+  @Public()
   @Post('register')
   // authorization: Basic $token 값이 string으로 들어감. 
   registerUser(@Headers('authorization') token: string){ // Headers는 기본으로 쓰이는 Headers도 따로 있기 때문에 꼭 @nestjs/common에 직접 import 해줘야 함. 
@@ -15,6 +17,7 @@ export class AuthController {
   }
 
   // login
+  @Public()
   @Post('login')
   loginUser(@Headers('authorization') token: string){
     return this.authService.login(token);
