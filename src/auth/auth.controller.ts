@@ -9,16 +9,16 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   // 회원 가입
-  @Public()
   @Post('register')
+  @Public()
   // authorization: Basic $token 값이 string으로 들어감. 
   registerUser(@Headers('authorization') token: string){ // Headers는 기본으로 쓰이는 Headers도 따로 있기 때문에 꼭 @nestjs/common에 직접 import 해줘야 함. 
     return this.authService.register(token);
   }
 
   // login
-  @Public()
   @Post('login')
+  @Public()
   loginUser(@Headers('authorization') token: string){
     return this.authService.login(token);
   }
