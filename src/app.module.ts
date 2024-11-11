@@ -16,7 +16,7 @@ import { envVariableKeys } from './common/const/env.const';
 import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/guard/auth.guard';
-import { RBACGuard } from './auth/guard/rabc.guard';
+import { RBACGuard } from './auth/guard/rbac.guard';
 
 // app.module은 중앙화의 역할만 함. app.service, app.controller도 직접 쓰기보단 모듈화로 처리
 @Module({
