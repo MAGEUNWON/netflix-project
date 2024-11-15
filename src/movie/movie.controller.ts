@@ -6,6 +6,7 @@ import { MovieTitleValidationPipe } from './pipe/movie-title-validation.pipe';
 import { Public } from 'src/auth/decorator/public.decorator';
 import { RBAC } from 'src/auth/decorator/rbac.decorator';
 import { Role } from 'src/user/entities/user.entity';
+import { GetMoviesDto } from './dto/get-movies.dto';
 
 @Controller('movie')
 @UseInterceptors(ClassSerializerInterceptor) // class transfomer를 MovieController에 적용하겠다는 것.
@@ -15,10 +16,10 @@ export class MovieController {
   @Get()
   @Public() // Public 이면 로그인 안해도 접근 가능 
   getMovies(
-    @Query('title', MovieTitleValidationPipe) title?: string,
+    @Query() dto: GetMoviesDto,
   ){
     // title 쿼리의 타입이 string 타입인지?
-    return this.movieService.findAll(title);
+    return this.movieService.findAll(dto);
   }
 
   @Get(':id')
