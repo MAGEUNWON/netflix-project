@@ -44,9 +44,15 @@ export class MovieService {
       }
 
       // this.commonService.applyPagePaginationParamsToQb(qb, dto); 
-      this.commonService.applyCursorPaginationParamsToQb(qb, dto);
+      const {nextCursor} = await this.commonService.applyCursorPaginationParamsToQb(qb, dto);
 
-      return await qb.getManyAndCount();
+      const [data, count] = await qb.getManyAndCount(); // getManyAndCount이기 때문에 count까지 같이 반환해 주기 
+
+      return {
+        data,
+        nextCursor,
+        count,
+      }
 
   // //title 없을 때 조건, count 적용 
   //   if(!title) {
