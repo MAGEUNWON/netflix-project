@@ -14,9 +14,10 @@ import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
 import { envVariableKeys } from './common/const/env.const';
 import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthGuard } from './auth/guard/auth.guard';
 import { RBACGuard } from './auth/guard/rbac.guard';
+import { ResponseTimeInterceptor } from './common/interceptor/response-time.interceptor';
 
 // app.module은 중앙화의 역할만 함. app.service, app.controller도 직접 쓰기보단 모듈화로 처리
 @Module({
@@ -81,6 +82,10 @@ import { RBACGuard } from './auth/guard/rbac.guard';
     {
       provide: APP_GUARD, // AuthGuard보다 밑에 적어줘야 함. 토큰이 있는지(AuthGuard) 먼저 확인 후 권한을(RoleGuard) 확인하는 순서이기 때문
       useClass: RBACGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseTimeInterceptor,
     }
   ]
 })
