@@ -7,6 +7,8 @@ import { Public } from 'src/auth/decorator/public.decorator';
 import { RBAC } from 'src/auth/decorator/rbac.decorator';
 import { Role } from 'src/user/entities/user.entity';
 import { GetMoviesDto } from './dto/get-movies.dto';
+import { CacheInterceptor } from 'src/common/interceptor/cache.interceptor';
+import { TransactionInterceptor } from 'src/common/interceptor/transaction.interceptor';
 
 @Controller('movie')
 @UseInterceptors(ClassSerializerInterceptor) // class transfomer를 MovieController에 적용하겠다는 것.
@@ -15,6 +17,7 @@ export class MovieController {
   
   @Get()
   @Public() // Public 이면 로그인 안해도 접근 가능 
+  // @UseInterceptors(CacheInterceptor)
   getMovies(
     @Query() dto: GetMoviesDto,
   ){
@@ -31,11 +34,14 @@ export class MovieController {
 
   @Post()
   @RBAC(Role.admin) // 이건 admin만 접근 가능 하다는 것
+  @UseInterceptors(TransactionInterceptor) // queryRunner를 붙이기 위함
   postMovie(
    @Body() body: CreateMovieDto,
+   @Request() req,
   ){
     return this.movieService.create(
       body,
+      req.queryRunner,
     );
   }
 
