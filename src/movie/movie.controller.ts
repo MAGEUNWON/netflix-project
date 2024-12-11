@@ -1,4 +1,4 @@
-import { Controller, Request, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, ClassSerializerInterceptor, ParseIntPipe, BadRequestException, NotAcceptableException, ParseFloatPipe, ParseBoolPipe, ParseArrayPipe, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { Controller, Request, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, ClassSerializerInterceptor, ParseIntPipe, BadRequestException, NotAcceptableException, ParseFloatPipe, ParseBoolPipe, ParseArrayPipe, ParseUUIDPipe, UseGuards, UploadedFile, UploadedFiles } from '@nestjs/common';
 import { MovieService } from './movie.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
@@ -9,6 +9,7 @@ import { Role } from 'src/user/entities/user.entity';
 import { GetMoviesDto } from './dto/get-movies.dto';
 import { CacheInterceptor } from 'src/common/interceptor/cache.interceptor';
 import { TransactionInterceptor } from 'src/common/interceptor/transaction.interceptor';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('movie')
 @UseInterceptors(ClassSerializerInterceptor) // class transfomer를 MovieController에 적용하겠다는 것.
@@ -35,10 +36,15 @@ export class MovieController {
   @Post()
   @RBAC(Role.admin) // 이건 admin만 접근 가능 하다는 것
   @UseInterceptors(TransactionInterceptor) // queryRunner를 붙이기 위함
+  @UseInterceptors(FilesInterceptor('movies')) // post 할 때 파일 업로드를 같이 진행함. 'movie'는 파일 올릴 때 키값 이름임, FileInterceptor는 파일 한개만 업로드할 때 사용하고 FilesInterceptor는 여러개 파일 업로드 할 때 사용
   postMovie(
    @Body() body: CreateMovieDto,
    @Request() req,
+   @UploadedFiles() files: Express.Multer.File[], // 파일 형식이 express의 multer file 형식이라는 것. 여기도 파일 한개면 UploadedFile을 사용하고 여러개 일땐 UploadedFiles를 사용해야 함. 파일 여러개 일 땐 리스트[]로 받아야 하기 때문에 써줘야 함 
   ){
+    console.log('------------------');
+    console.log(files);
+    
     return this.movieService.create(
       body,
       req.queryRunner,
