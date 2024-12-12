@@ -8,6 +8,7 @@ import { v4 } from "uuid";
 
 @Module({
     imports: [
+        // 파일 업로드 모듈 설정
         MulterModule.register({
             storage: diskStorage({ // 어디에 파일을 저장할 것인지 지정하는 것
               destination: join(process.cwd(), 'public', 'temp'),  // 어느 폴더에 넣을 것인지 지정하는 것. 
