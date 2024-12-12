@@ -11,6 +11,7 @@ import { Genre } from 'src/genre/entity/genre.entity';
 import { GetMoviesDto } from './dto/get-movies.dto';
 import { CommonService } from 'src/common/common.service';
 import { join } from 'path';
+import { rename } from 'fs/promises';
 
 @Injectable()
 export class MovieService {
@@ -98,7 +99,7 @@ export class MovieService {
   }
 
   // Movie data 생성
-  async create(createMovieDto: CreateMovieDto, movieFileName: string, qr: QueryRunner){ // 여기서 qr은 이제 interceptor에서 만든 qr을 받아 오게됨
+  async create(createMovieDto: CreateMovieDto, qr: QueryRunner){ // 여기서 qr은 이제 interceptor에서 만든 qr을 받아 오게됨
    
       const director = await qr.manager.findOne(Director, { // 트랜잭션을 사용하려면 레포지토리 대신 qr.manager를 사용해서 findOne 해야함. 추가로 어떤 테이블에서 작업할 것인지 () 엔에 테이블을 넣어줘야함(Director)
         where: {
@@ -134,7 +135,14 @@ export class MovieService {
       const movieDetailId = movieDetail.identifiers[0].id; // value를 1개만 넣었기 때문에 그냥 바로 [0].id 해줌
       
       
-        const movieFolder = join('public', 'moive');
+      const movieFolder = join('public', 'movie'); // 옮기려는 파일 
+      const tempFolder = join('public', 'temp');  // 여기 들어있는 파일을 movieFolder로 옮겨줘야 함
+      
+      // 파일을 temp폴더에서 moive 폴더로 옮겨주는 작업
+      await rename(
+        join(process.cwd(), tempFolder, createMovieDto.movieFileName),
+        join(process.cwd(), movieFolder, createMovieDto.movieFileName)
+      )
 
       // movie 만들고 
       const movie = await qr.manager.createQueryBuilder()
@@ -146,7 +154,7 @@ export class MovieService {
             id: movieDetailId, // 위에서 id 값 받을 수 있게 만들고 여기서 연결해 줘야 함.
           },
           director,
-          movieFilePath: join(movieFolder, movieFileName),
+          movieFilePath: join(movieFolder, createMovieDto.movieFileName),
         })
         .execute();
   

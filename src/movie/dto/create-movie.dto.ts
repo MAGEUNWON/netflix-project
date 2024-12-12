@@ -21,4 +21,7 @@ export class CreateMovieDto {
     })
     @Type(() => Number) // Form 데이터를 보낼때는 스트링으로 밖에 보낼 수 없기 때문에 여기서 자동으로 Number 변환해 줄 수 있도록 transform을 해줘야 함
     genreIds: number[];
+
+    @IsString()
+    movieFileName: string;
 }

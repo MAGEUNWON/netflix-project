@@ -3,6 +3,7 @@ import { BaseTable } from "../../common/entity/base-entity";
 import { MovieDetail } from "./movie-detail.entity";
 import { Director } from "src/director/entitiy/director.entity";
 import { Genre } from "src/genre/entity/genre.entity";
+import { Transform } from "class-transformer";
 
 // ManyToOne -> Director (감독은 여러개의 영화를 만들 수 있음)
 // OneToOne -> MovieDetail (영화는 하나의 상세 내용을 가질 수 있음)
@@ -45,6 +46,7 @@ export class Movie extends BaseTable {
     detail: MovieDetail;
 
     // movie file 경로 컬럼 
+    @Transform(({value}) => `http://localhost:3000/${value}`) // host까지 명시해 줌. public 폴더에서 파일을 직접 받아올 수 있는 풀 링크가 생김
     @Column()
     movieFilePath: string; 
 
