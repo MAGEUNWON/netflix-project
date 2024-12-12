@@ -20,6 +20,8 @@ import { RBACGuard } from './auth/guard/rbac.guard';
 import { ResponseTimeInterceptor } from './common/interceptor/response-time.interceptor';
 import { ForbiddenExceptionFilter } from './common/filter/forbidden.filter';
 import { QueryFailedExceptionFilter } from './common/filter/query-failed.filter';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 // app.module은 중앙화의 역할만 함. app.service, app.controller도 직접 쓰기보단 모듈화로 처리
 @Module({
@@ -60,6 +62,11 @@ import { QueryFailedExceptionFilter } from './common/filter/query-failed.filter'
       }),
       inject: [ConfigService]
     }),
+    // 파일을 프론트엔드에 전달(다운로드)해주려면 권한을 열어줘야함. (@nestjs/serve-static 패키기 설치해줘야함)
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'public'), // 어떤 폴더로부터 파일을 서빙할지 입력해 주는 곳. 전체 프로젝트에서 public 폴더 안에 있는 값들만 서빙할 수 있도록 설정함
+      serveRoot: '/public/', // serveRoot를 설정하면 rootPath의 경로를 가져올 때 앞에 serveRoot를 붙여서 가져오도록 함. serveRoot + rootPath 의 경로로 진행됨 
+    }),
     // TypeOrmModule.forRoot({  // 동기
     //   type: process.env.DB_TYPE as "postgres",
     //   host: process.env.DB_HOST,
@@ -69,7 +76,7 @@ import { QueryFailedExceptionFilter } from './common/filter/query-failed.filter'
     //   database: process.env.DB_DATABASE,
     //   entities: [],
     //   synchronize: true,  // 자동으로 코드와 맞게 데이터베이스를 싱크시키라는 것. 때문에 개발할때만 true로 해주고 production에서는 false로 함. production에서 싱크 맞추는 것은 마이그레이션에서 함
-    // }),
+    // }), 
     MovieModule,
     DirectorModule,
     GenreModule,
