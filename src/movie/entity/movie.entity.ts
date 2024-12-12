@@ -44,6 +44,10 @@ export class Movie extends BaseTable {
     @JoinColumn()
     detail: MovieDetail;
 
+    // movie file 경로 컬럼 
+    @Column()
+    movieFilePath: string; 
+
     // 영화와 감독의 관계 설정
     @ManyToOne(
         () => Director,
