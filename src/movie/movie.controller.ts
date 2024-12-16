@@ -11,6 +11,9 @@ import { CacheInterceptor } from 'src/common/interceptor/cache.interceptor';
 import { TransactionInterceptor } from 'src/common/interceptor/transaction.interceptor';
 import { FileFieldsInterceptor, FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { MovieFilePipe } from './pipe/movie-file.pipe';
+import { UserId } from 'src/user/decorator/user-id.decorator';
+import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
+import { QueryRunner as QR} from 'typeorm';
 
 @Controller('movie')
 @UseInterceptors(ClassSerializerInterceptor) // class transfomer를 MovieController에 적용하겠다는 것.
@@ -39,11 +42,13 @@ export class MovieController {
   @UseInterceptors(TransactionInterceptor) // queryRunner를 붙이기 위함
   postMovie(
    @Body() body: CreateMovieDto,
-   @Request() req,
+   @QueryRunner() queryRunner: QR, // @Request() req, 사용하는 대신 이렇게 paramDecorator를 만들어서 사용해 주는 것이 더 정확하고 관리하기 좋음 
+   @UserId() userId: number,
   ) {
     return this.movieService.create(
       body,
-      req.queryRunner,
+      userId,
+      queryRunner,
     );
   }
 

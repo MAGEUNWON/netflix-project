@@ -12,6 +12,7 @@ import { GetMoviesDto } from './dto/get-movies.dto';
 import { CommonService } from 'src/common/common.service';
 import { join } from 'path';
 import { rename } from 'fs/promises';
+import { UserId } from 'src/user/decorator/user-id.decorator';
 
 @Injectable()
 export class MovieService {
@@ -80,6 +81,7 @@ export class MovieService {
       .leftJoinAndSelect('movie.director', 'director')
       .leftJoinAndSelect('movie.genres', 'genres')
       .leftJoinAndSelect('movie.detail', 'detail')
+      .leftJoinAndSelect('movie.creator', 'creator')
       .where('movie.id = :id', {id})
       .getOne();
 
@@ -99,7 +101,7 @@ export class MovieService {
   }
 
   // Movie data 생성
-  async create(createMovieDto: CreateMovieDto, qr: QueryRunner){ // 여기서 qr은 이제 interceptor에서 만든 qr을 받아 오게됨
+  async create(createMovieDto: CreateMovieDto, userId: number, qr: QueryRunner){ // 여기서 qr은 이제 interceptor에서 만든 qr을 받아 오게됨
    
       const director = await qr.manager.findOne(Director, { // 트랜잭션을 사용하려면 레포지토리 대신 qr.manager를 사용해서 findOne 해야함. 추가로 어떤 테이블에서 작업할 것인지 () 엔에 테이블을 넣어줘야함(Director)
         where: {
@@ -138,11 +140,6 @@ export class MovieService {
       const movieFolder = join('public', 'movie'); // 옮기려는 파일 
       const tempFolder = join('public', 'temp');  // 여기 들어있는 파일을 movieFolder로 옮겨줘야 함
       
-      // 파일을 temp폴더에서 moive 폴더로 옮겨주는 작업
-      await rename(
-        join(process.cwd(), tempFolder, createMovieDto.movieFileName),
-        join(process.cwd(), movieFolder, createMovieDto.movieFileName)
-      )
 
       // movie 만들고 
       const movie = await qr.manager.createQueryBuilder()
@@ -154,6 +151,9 @@ export class MovieService {
             id: movieDetailId, // 위에서 id 값 받을 수 있게 만들고 여기서 연결해 줘야 함.
           },
           director,
+          creator:{
+            id:userId,
+          },
           movieFilePath: join(movieFolder, createMovieDto.movieFileName),
         })
         .execute();
@@ -165,7 +165,14 @@ export class MovieService {
           .relation(Movie, 'genres')
           .of(movieId)
           .add(genres.map(genre => genre.id));
-  
+
+        // 파일을 temp폴더에서 moive 폴더로 옮겨주는 작업
+        // rename은 트랜잭션의 영향을 받지 않기 때문에 movie 위에다 두면 에러가 나서 movie 데이터는 멈춰도 파일은 이동되서 잉여 파일이 되버리기 때문에 데이터 처리 과정이 에러없이 다 끝난 후인 마지막에 둬야 함. 
+        await rename(
+          join(process.cwd(), tempFolder, createMovieDto.movieFileName),
+          join(process.cwd(), movieFolder, createMovieDto.movieFileName)
+        )
+
 
       // 그리고 movie 반환, return은 commit 된 다음 반환
       // commit이 handle 함수가 실행된 다음에 실행됨. 그래서 같은 트랜잭션 안에서 데이터를 찾지 않으면 실제 데이터에 반영이 되지 않은 상태가 됨. 그래서 같은 트랜잭션 안에서 봐야 하기 때문에 this.movieRepository 대신 qr.manager를 사용해야 함

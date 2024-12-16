@@ -4,6 +4,7 @@ import { MovieDetail } from "./movie-detail.entity";
 import { Director } from "src/director/entitiy/director.entity";
 import { Genre } from "src/genre/entity/genre.entity";
 import { Transform } from "class-transformer";
+import { User } from "src/user/entities/user.entity";
 
 // ManyToOne -> Director (감독은 여러개의 영화를 만들 수 있음)
 // OneToOne -> MovieDetail (영화는 하나의 상세 내용을 가질 수 있음)
@@ -13,6 +14,12 @@ import { Transform } from "class-transformer";
 export class Movie extends BaseTable {
     @PrimaryGeneratedColumn()
     id: number;
+
+    @ManyToOne(
+        () => User,
+        (user) => user.createdMovies,
+    )
+    creator: User;
 
     @Column({
         unique: true, // unique를 ture로 해주면 한 테이블에 같은 값이 두개가 존재할 수 없도록 제약을 줄 수 있음. 
