@@ -22,6 +22,7 @@ import { ForbiddenExceptionFilter } from './common/filter/forbidden.filter';
 import { QueryFailedExceptionFilter } from './common/filter/query-failed.filter';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { MovieUserLike } from './movie/entity/movie-user-like.entity';
 
 // app.module은 중앙화의 역할만 함. app.service, app.controller도 직접 쓰기보단 모듈화로 처리
 @Module({
@@ -54,6 +55,7 @@ import { join } from 'path';
           entities: [ // 여기에 만들어둔 Entity 등록해줘야 테이블 생성 됨
             Movie,
             MovieDetail,
+            MovieUserLike,
             Director, 
             Genre,
             User,

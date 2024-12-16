@@ -73,4 +73,31 @@ export class MovieController {
       +id
     );
   }
+
+  /**
+   * 좋아요 기능 구성
+   * [Like] [Dislike]
+   * 
+   * 아무것도 누르지 않은 상태
+   * Like & Dislike 모두 버튼 꺼져있음
+   * 
+   * Like 버튼 누르면 
+   * Like 버튼 불 켜짐
+   * 
+   * Like 버튼 다시 누르면 
+   * Like 버튼 불 꺼짐
+   * 
+   * Dislike 버튼 누르면
+   * Dislike 버튼 불 켜짐
+   * 
+   * Dislike 버튼 다시 누르면
+   * Dislike 불 꺼짐
+   * 
+   * Like 버튼 누른 상태(Like 불 켜진 상태에서)
+   * Dislike 버튼 누르면 Like 버튼 불 꺼지고 Dislike 버튼 불 켜짐
+   */
+
+
 }
+
+
