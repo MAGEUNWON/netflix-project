@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { Movie } from './entity/movie.entity';
-import { number } from 'joi';
+import { boolean, number } from 'joi';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, Like, QueryRunner, Repository } from 'typeorm';
 import { MovieDetail } from './entity/movie-detail.entity';
@@ -13,6 +13,8 @@ import { CommonService } from 'src/common/common.service';
 import { join } from 'path';
 import { rename } from 'fs/promises';
 import { UserId } from 'src/user/decorator/user-id.decorator';
+import { User } from 'src/user/entities/user.entity';
+import { MovieUserLike } from './entity/movie-user-like.entity';
 
 @Injectable()
 export class MovieService {
@@ -29,6 +31,10 @@ export class MovieService {
     private readonly directorRepository: Repository<Director>,
     @InjectRepository(Genre)
     private readonly genreRepository: Repository<Genre>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>, 
+    @InjectRepository(MovieUserLike)
+    private readonly movieUserLikeRepository: Repository<MovieUserLike>,
     private readonly dataSource: DataSource,
     private readonly commonService: CommonService,
   ){}
@@ -446,5 +452,76 @@ export class MovieService {
     await this.movieDetailRepository.delete(movie.detail.id);
     
     return id;
+    
+  }
+
+  // 좋아요 싫어요 기능
+  async toggleMovieLike(movieId: number, userId: number, isLike: boolean){
+    const movie = await this.movieRepository.findOne({
+      where: {
+        id: movieId,
+      }
+    });
+
+    if(!movie){
+      throw new BadRequestException('존재하지 않는 영화입니다!');
+    }
+
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      }
+    });
+
+    if(!user){
+      throw new UnauthorizedException('사용자 정보가 없습니다!');
+    }
+
+    // 좋아요 또는 싫어요 데이터 있는지 확인
+    const likeRecored = await this.movieUserLikeRepository.createQueryBuilder('mul')
+    .leftJoinAndSelect('mul.movie', 'movie')
+    .leftJoinAndSelect('mul.user', 'user')
+    .where('movie.id = :movieId', { movieId })
+    .andWhere('user.id = :userId', { userId })
+    .getOne(); // 하나의 데이터만 가져오기
+
+    // 좋아요 또는 싫어요가 존재하는 경우
+    if(likeRecored) {
+      // 좋아요 누른 상태에서 좋아요 누르거나 싫어요 누른 상태에서 싫어요 누른 경우 
+      if(isLike === likeRecored.isLike) { 
+        await this.movieUserLikeRepository.delete({ // 그냥 삭제해서 아무것도 안눌린 상태로 변경해줌
+          movie,
+          user,
+        });
+      // 좋아요 누른 상태에서 싫어요 누르거나 싫어요 누른 상태에서 좋아요 누른 경우 
+      } else{
+        await this.movieUserLikeRepository.update({
+          movie,
+          user,
+        }, {
+          isLike, // toggleMovieLike에서 입력받은 isLike로 변경(toggle 해주면 됨)
+        })
+      }
+
+    // 좋아요 또는 싫어요가 존재하지 않는 경우(그냥 그 상태로 저장하면 됨)
+    } else { 
+      await this.movieUserLikeRepository.save({
+        movie,
+        user,
+        isLike,
+      });
+    }
+
+    const result = await this.movieUserLikeRepository.createQueryBuilder('mul')
+    .leftJoinAndSelect('mul.movie', 'movie')
+    .leftJoinAndSelect('mul.user', 'user')
+    .where('movie.id = :movieId', { movieId })
+    .andWhere('user.id = :userId', { userId })
+    .getOne(); // 하나의 데이터만 가져오기
+    
+    return {
+      isLike: result && result.isLike, // result가 존재하지 않으면 null 반환, 존재하면 result의 isLike를 반환
+    }
   }
 }
+ 

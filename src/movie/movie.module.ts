@@ -12,14 +12,17 @@ import { diskStorage } from 'multer';
 import {join} from 'path';
 import { v4 } from 'uuid';
 import { MovieUserLike } from './entity/movie-user-like.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Module({
   imports:[
     TypeOrmModule.forFeature([
       Movie,
       MovieDetail,
+      MovieUserLike,
       Director,
       Genre,
+      User
     ]),
     CommonModule,
   ],  

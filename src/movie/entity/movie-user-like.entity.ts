@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { Movie } from "./movie.entity";
 import { User } from "src/user/entities/user.entity";
 
@@ -25,6 +25,9 @@ export class MovieUserLike {
         (user) => user.likedMovies,
     )
     user: User;
+
+    @Column()
+    isLike: boolean;
 }
 
 // 이렇게 되면 결국 여러개의 영화가 여러개의 사용자와 서로 상호관계를 가질 수 있는 관계가 될 수 있음. 

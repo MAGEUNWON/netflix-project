@@ -96,7 +96,22 @@ export class MovieController {
    * Like 버튼 누른 상태(Like 불 켜진 상태에서)
    * Dislike 버튼 누르면 Like 버튼 불 꺼지고 Dislike 버튼 불 켜짐
    */
+  @Post(':id/like')
+  createMovieLike(
+    @Param('id', ParseIntPipe) movieId: number,
+    @UserId() userId: number,
+  ) {
+    return this.movieService.toggleMovieLike(movieId, userId, true);
+  }
 
+  @Post(':id/dislike')
+  createMovieDisLike(
+    @Param('id', ParseIntPipe) movieId: number,
+    @UserId() userId: number,
+  ){
+    return this.movieService.toggleMovieLike(movieId, userId, false);
+
+  }
 
 }
 
