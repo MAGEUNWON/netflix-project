@@ -41,7 +41,7 @@ export class MovieService {
 
   // 전체 값 가져오기
   // 쿼리 빌더로 변경한 코드 
-  async findAll(dto: GetMoviesDto ){
+  async findAll(dto: GetMoviesDto, userId: number){
     const { title } = dto;
 
     const qb = await this.movieRepository.createQueryBuilder('movie')
@@ -55,7 +55,39 @@ export class MovieService {
       // this.commonService.applyPagePaginationParamsToQb(qb, dto); 
       const {nextCursor} = await this.commonService.applyCursorPaginationParamsToQb(qb, dto);
 
-      const [data, count] = await qb.getManyAndCount(); // getManyAndCount이기 때문에 count까지 같이 반환해 주기 
+      let [data, count] = await qb.getManyAndCount(); // getManyAndCount이기 때문에 count까지 같이 반환해 주기 
+
+      if(userId){
+        // data에 좋아요한 상태를 넣어서 같이 보내 줄 것
+        const movieIds = data.map(movie => movie.id);
+
+        // 현재 페이지네이션에서 가져온 데이터 중에서 좋아요 또는 싫어요를 한 데이터 모두 가져옴
+        const likedMovies = await this.movieUserLikeRepository.createQueryBuilder('mul')
+        .leftJoinAndSelect('mul.user', 'user')
+        .leftJoinAndSelect('mul.movie', 'movie')
+        .where('movie.id IN(:...movieIds)', {movieIds}) // :은 변수라는 뜻. ...은 list값을 넣어줬을 때 , 로 자동으로 나눠져서 들어가게 됨
+        .andWhere('user.id = :userId', {userId})
+        .getMany(); // 여러개의 데이터를 가져와라. 
+
+        
+        /**
+         * 데이터를 map으로 변환해줄 것
+         * {
+         * movieId: boolean // movieId가 key가 되고 boolean 값이(좋아요, 싫어요 여부) valuer가 됨
+         * } 
+         */
+        const likedMoviesMap = likedMovies.reduce((acc, next) => ({
+          ...acc, // 기존 데이터
+          [next.movie.id]: next.isLike, // key : value
+        }), {});
+
+        // data에 덮어 씌울 것
+        data = data.map((x) => ({
+          ...x,
+          // null || true || false -> 좋아요 상태 추가로 데이터 넣어줌
+          likeStatus: x.id in likedMoviesMap ? likedMoviesMap[x.id] : null, 
+        }));
+      }
 
       return {
         data,
@@ -77,7 +109,7 @@ export class MovieService {
   //     }, // 여기선 보통 detail을 가져오지는 않음. 
   //     relations: ['director', 'genres'],
   //   }); 
-  }
+  } 
   
   // 특정 값 가져오기
   async findOne(id: number){
