@@ -13,6 +13,9 @@ export class MovieUserLike {
     @ManyToOne( // 하나의 영화가 여러개의 좋아요와 연결됨. 
         () => Movie,
         (movie) => movie.likedUsers,
+        {
+            onDelete: 'CASCADE', // 이렇게 설정해주면 영화가 지워졌을 때 이 영화를 좋아요/싫어요 한 데이터도 같이 삭제해줌
+        }
     )
     movie: Movie;
 
@@ -23,6 +26,9 @@ export class MovieUserLike {
     @ManyToOne( // 하나의 사용자가 여러개의 좋아요와 연결됨 
         () => User,
         (user) => user.likedMovies,
+        {
+            onDelete: 'CASCADE', // 사용자가 삭제 됐을 때 사용자가 좋아요/싫어요 한 데이터도 다 삭제해줌. 
+        }
     )
     user: User;
 

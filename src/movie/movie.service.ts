@@ -62,7 +62,7 @@ export class MovieService {
         const movieIds = data.map(movie => movie.id);
 
         // 현재 페이지네이션에서 가져온 데이터 중에서 좋아요 또는 싫어요를 한 데이터 모두 가져옴
-        const likedMovies = await this.movieUserLikeRepository.createQueryBuilder('mul')
+        const likedMovies = movieIds.length < 1 ? [] : await this.movieUserLikeRepository.createQueryBuilder('mul')// 영화를 가져온게 하나도 없으면 그냥 빈 리스트 보내주고 아닌 경우(영화 있는 경우)만 쿼리 실행
         .leftJoinAndSelect('mul.user', 'user')
         .leftJoinAndSelect('mul.movie', 'movie')
         .where('movie.id IN(:...movieIds)', {movieIds}) // :은 변수라는 뜻. ...은 list값을 넣어줬을 때 , 로 자동으로 나눠져서 들어가게 됨
