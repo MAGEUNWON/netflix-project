@@ -14,6 +14,7 @@ import { MovieFilePipe } from './pipe/movie-file.pipe';
 import { UserId } from 'src/user/decorator/user-id.decorator';
 import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
 import { QueryRunner as QR} from 'typeorm';
+import { CacheKey, CacheTTL, CacheInterceptor as CI} from '@nestjs/cache-manager';
 
 @Controller('movie')
 @UseInterceptors(ClassSerializerInterceptor) // class transfomer를 MovieController에 적용하겠다는 것.
@@ -30,6 +31,18 @@ export class MovieController {
     // title 쿼리의 타입이 string 타입인지?
     return this.movieService.findAll(dto, userId);
   }
+
+  // /movie/recent -> 최신 영화만 가져오게 함
+  // 전체 다 가져오는 아래 Get(':id')보다 아래 밑에 있으면 저기서 걸리기 때문에 위에다 써줘야 함
+  @Get('recent')
+  @UseInterceptors(CI) // UseInterceptors안에 @nestjs/cache-manager에 있는 CacheInterceptor를 넣어주면 자동으로 이 엔드포인트의 결과를 캐싱함. 이건 근데 url을 기반으로 캐싱함. 그래서 같은 엔드포인트에서 쿼리파라미터를 넣으면 각각 다른 키로 캐싱이 됨  
+  @CacheKey('getMoviesRecent') // 캐시 키값을 바꿔주는 것. 이렇게 하면 캐시키가 일괄적으로 적용되기 때문에 쿼리파라미터가 변경되도 같은 저 키값으로 캐싱됨 
+  @CacheTTL(1000) // 여기서 ttl 적용해주면 module에 적용한거 무시하고 이걸로 적용됨 
+  getMoviesRecent(){
+    console.log('getMoviesRecent() 실행!');
+    return this.movieService.findRecent();
+  }
+
 
   @Get(':id')
   @Public()

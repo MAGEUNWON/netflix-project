@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { Movie } from './entity/movie.entity';
@@ -15,6 +15,8 @@ import { rename } from 'fs/promises';
 import { UserId } from 'src/user/decorator/user-id.decorator';
 import { User } from 'src/user/entities/user.entity';
 import { MovieUserLike } from './entity/movie-user-like.entity';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+
 
 @Injectable()
 export class MovieService {
@@ -37,7 +39,37 @@ export class MovieService {
     private readonly movieUserLikeRepository: Repository<MovieUserLike>,
     private readonly dataSource: DataSource,
     private readonly commonService: CommonService,
+    @Inject(CACHE_MANAGER) // 어디서 import 하는지도 중요함. 잘 확인하면서 해야함 
+    private readonly cacheManager: Cache,
   ){}
+
+  async findRecent(){
+
+    const cacheData = await this.cacheManager.get('MOVIE_RECENT') // 캐시 저장. set(key, value)
+
+    // cache에 cacheData가 있으면 여기서 그냥 가져오면 됌. 데이터까지 갈 필요 없음. 
+    if(cacheData){
+      console.log('cache 가져옴!')
+      return cacheData;
+    }
+
+    // cacheData가 없으면 그 때 데이터베이스에 요청 함 
+    const data = await this.movieRepository.find({
+      order: {
+        createdAt: 'DESC', 
+      },
+      take: 10,
+    });
+
+    // 데이터베이스에서 응답 받은 값을 cache에 저장한 다음 반환함. 
+    // 저장한 캐시 불러오기, cache에는 ttl(time to live)이라는 것이 있음. cache가 몇초동안 데이터를 저장하고 있을지 설정하는 것. set에 0이라고 마지막에 넣어주면 지우지 않고 무한하게 저장함, 만약 3000(3초)로 설정하면 3초 뒤에는 다시 데이터에서 요청에서 가져오게 됨. 처음에 아예 설정하고 싶으면 movie module에 ttl 설정해주면 됨   
+    // 만약 module에도 해주고 service에도 ttl 적용하면 service에서 적용한 세부 ttl이 더 우선시되서 적용됨
+    await this.cacheManager.set("MOVIE_RECENT", data); 
+
+    // 그럼 두번째 요청을 하게 되면 cache에 저장이 되어 있기 때문에 데이터에 요청 안해도 됨 
+    // 그냥 기본 cache를 쓰게되면 메모리에 있기 때문에 서버 다시 시작되면 유실됨. 재시작하지 않고 실행 중에만 cache 보존됨 
+    return data;
+  }
 
   // 전체 값 가져오기
   // 쿼리 빌더로 변경한 코드 
