@@ -49,7 +49,6 @@ export class MovieService {
 
     // cache에 cacheData가 있으면 여기서 그냥 가져오면 됌. 데이터까지 갈 필요 없음. 
     if(cacheData){
-      console.log('cache 가져옴!')
       return cacheData;
     }
 

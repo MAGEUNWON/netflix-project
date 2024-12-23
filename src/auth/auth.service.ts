@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role, User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { envVariableKeys } from 'src/common/const/env.const'; 
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 
 
 @Injectable()
@@ -15,7 +16,26 @@ export class AuthService {
         private readonly userRepository: Repository<User>,
         private readonly configService: ConfigService,
         private readonly jwtService: JwtService,
+        @Inject(CACHE_MANAGER)
+        private readonly cacheManager: Cache,
     ){}
+
+    // 토큰 요청 bock 하는 기능
+    async tokenBlock(token: string){
+        const payload = this.jwtService.decode(token); // 아래 만료기간동안 토큰 정보 들고 있으면서 이 토큰으로 요청하면 어떤 요청이 들어와도 다 block 해버림
+
+        // payload(['exp]) -> epoch time seconds. 이걸 사용해서 지금부터 만료기간까지 몇 초가 남았는지를 계산할 수 있음
+        const expiryDate = +new Date(payload['exp'] * 1000); // 초 단위로 되어 있는데 밀리세컨트로 제공하기 위해 * 1000 해줌
+        const now = +Date.now(); // 현재, 타입스크립트는 이게 숫자로 변환된다는 것을 유추를 못하지 때문에 +를 앞에 붙여줌 
+
+        const differenceInSeconds = (expiryDate - now)  / 1000; // 초당 차이를 계산. 밀리세컨드 단위로 계산했기 때문에 1000 나눠 줘야 초로 계산 할 수 있음 
+
+        await this.cacheManager.set(`BLOCK_TOKEN_${token}`, payload, // set(키, 값, ttl)
+              Math.max((differenceInSeconds) * 1000, 1) // ttl은 밀리세컨이기 때문에 다시 * 1000 해서 바꿔줘야 함. 최소 1m/s이 되도록 만들어줌
+        ); // 이 expireyDate를 섬세하게 잘 적용해 주는 것이 매우 중요함. 0이 되거나 할 가능성을 주면 제대로 검증 등이 안될 수 있음 
+
+        return true;
+    }
 
     // basic token을 받으면 rawToken -> "Basic $token"모양으로 생김
     // toekn 값을 추출하면 base64로 인코딩 되어있으니 디코딩해서 emial:password 값을 구해야 함

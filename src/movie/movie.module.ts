@@ -26,9 +26,6 @@ import { CacheModule } from '@nestjs/cache-manager';
       User
     ]),
     CommonModule,
-    CacheModule.register({
-      ttl: 3000, // 만약 module에도 해주고 service에도 ttl 적용하면 service에서 적용한 세부 ttl이 더 우선시되서 적용됨
-    }), // @nestjs/chche-manager install 해줌 
   ],  
   controllers: [MovieController],
   providers: [MovieService],

@@ -39,7 +39,6 @@ export class MovieController {
   @CacheKey('getMoviesRecent') // 캐시 키값을 바꿔주는 것. 이렇게 하면 캐시키가 일괄적으로 적용되기 때문에 쿼리파라미터가 변경되도 같은 저 키값으로 캐싱됨 
   @CacheTTL(1000) // 여기서 ttl 적용해주면 module에 적용한거 무시하고 이걸로 적용됨 
   getMoviesRecent(){
-    console.log('getMoviesRecent() 실행!');
     return this.movieService.findRecent();
   }
 

@@ -23,6 +23,7 @@ import { QueryFailedExceptionFilter } from './common/filter/query-failed.filter'
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { MovieUserLike } from './movie/entity/movie-user-like.entity';
+import { CacheModule } from '@nestjs/cache-manager';
 
 // app.module은 중앙화의 역할만 함. app.service, app.controller도 직접 쓰기보단 모듈화로 처리
 @Module({
@@ -69,6 +70,10 @@ import { MovieUserLike } from './movie/entity/movie-user-like.entity';
       rootPath: join(process.cwd(), 'public'), // 어떤 폴더로부터 파일을 서빙할지 입력해 주는 곳. 전체 프로젝트에서 public 폴더 안에 있는 값들만 서빙할 수 있도록 설정함
       serveRoot: '/public/', // serveRoot를 설정하면 rootPath의 경로를 가져올 때 앞에 serveRoot를 붙여서 가져오도록 함. serveRoot + rootPath 의 경로로 진행됨 
     }),
+    CacheModule.register({
+      ttl: 0, // 만약 module에도 해주고 service에도 ttl 적용하면 service에서 적용한 세부 ttl이 더 우선시되서 적용됨, @nestjs/chche-manager install 해줌 
+      isGlobal: true, // 프로젝트 전반에서 따로 불러오지 않고 사용할 수 있음 
+    }), 
     // TypeOrmModule.forRoot({  // 동기
     //   type: process.env.DB_TYPE as "postgres",
     //   host: process.env.DB_HOST,

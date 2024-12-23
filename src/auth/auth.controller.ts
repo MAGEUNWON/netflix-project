@@ -1,4 +1,4 @@
-import { Controller, Post, Headers, Request, UseGuards, Get } from '@nestjs/common';
+import { Controller, Post, Headers, Request, UseGuards, Get, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './strategy/local.strategy';
 import { JwtAuthGuard } from './strategy/jwt.strategy';
@@ -9,20 +9,28 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   // 회원 가입
-  @Post('register')
   @Public()
+  @Post('register')
   // authorization: Basic $token 값이 string으로 들어감. 
   registerUser(@Headers('authorization') token: string){ // Headers는 기본으로 쓰이는 Headers도 따로 있기 때문에 꼭 @nestjs/common에 직접 import 해줘야 함. 
     return this.authService.register(token);
   }
 
   // login
-  @Post('login')
   @Public()
+  @Post('login')
   loginUser(@Headers('authorization') token: string){
     return this.authService.login(token);
   }
 
+  // Token block
+  @Post('token/block')
+  blockToken(
+    @Body('token') token: string,
+  ){
+    return this.authService.tokenBlock(token);
+  }
+  
   // access token 재발급 
   @Post('token/access')
   async rotateAccessToken(@Request() req){    
