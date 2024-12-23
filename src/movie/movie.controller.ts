@@ -15,6 +15,7 @@ import { UserId } from 'src/user/decorator/user-id.decorator';
 import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
 import { QueryRunner as QR} from 'typeorm';
 import { CacheKey, CacheTTL, CacheInterceptor as CI} from '@nestjs/cache-manager';
+import { Throttle } from 'src/auth/decorator/throttle.decorator';
 
 @Controller('movie')
 @UseInterceptors(ClassSerializerInterceptor) // class transfomer를 MovieController에 적용하겠다는 것.
@@ -24,6 +25,10 @@ export class MovieController {
   @Get()
   @Public() // Public 이면 로그인 안해도 접근 가능 
   // @UseInterceptors(CacheInterceptor)
+  @Throttle({
+    count: 5,
+    unit: 'minute',
+  })
   getMovies(
     @Query() dto: GetMoviesDto,
     @UserId() userId?: number,
