@@ -1,11 +1,17 @@
 import { Injectable } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
+import { InjectRepository } from "@nestjs/typeorm";
 import { readdir, unlink } from "fs/promises";
 import { join, parse } from "path";
+import { Movie } from "src/movie/entity/movie.entity";
+import { Repository } from "typeorm";
 
 @Injectable()
 export class TasksService{
-    constructor(){}
+    constructor(
+        @InjectRepository(Movie)
+        private readonly movieRepository: Repository<Movie>
+    ){}
 
     logEverySecond(){
         console.log('1초마다 실행!')
@@ -47,6 +53,32 @@ export class TasksService{
         ); // for문으로 삭제하면 파일 하나하나 순서대로 삭제하는거 기다려야하지만 Promise.all 사용하면 
         // 동시에 시작을 해서 모두 다 끝나면 반환해줌 
 
+    }
+
+    // @Cron('0 * * * * *') // 1분 정각에 한번씩 
+    async calculateMovieLikeCount(){ // 좋아요, 싫어요 숫자가 많아지면 바로바로 업데이트 하기 어려우니까 시간당 모아서 주기적으로 업데이트 해줄 수 있음. 
+        // console.log('run');
+        // 좋아요 수 세서 movie의 likeCount에 업데이트 
+        await this.movieRepository.query(
+            `          
+            update movie m
+            set "likeCount" = (
+            	select count(*) from movie_user_like mul
+            	where m.id = mul."movieId" and mul."isLike" = true
+            );
+            `
+        );
+
+        // 싫어요 수 세서 movie의 likeCount에 업데이트 
+        await this.movieRepository.query(
+            `          
+            update movie m
+            set "dislikeCount" = (
+            	select count(*) from movie_user_like mul
+            	where m.id = mul."movieId" and mul."isLike" = false 
+            );
+            `
+        );
     }
 
 }

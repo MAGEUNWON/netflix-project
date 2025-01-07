@@ -35,10 +35,17 @@ export class Movie extends BaseTable {
     @JoinTable() // 다대다 관계는 genre, movie 둘 중 아무곳에나 설정 해줘야 함. 영화에 해줌
     genres: Genre[]
 
+    // 좋아요 count
     @Column({
         default : 0,
     })
     likeCount: number;
+
+    // 싫어요 count
+    @Column({
+        default: 0,
+    })
+    dislikeCount: number;
  
 
     // 영화와 상세 내용의 관계 설정
