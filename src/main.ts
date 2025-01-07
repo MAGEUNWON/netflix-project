@@ -3,7 +3,10 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    // logger: false, // flase로 해두면 logger가 안보임 
+    // logger: ['error'],// [] 안에 써준 순서 위로만 보여짐. error, fatal만 보임. 
+  });
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true, // 불리안 값을 넣을 수 있음. 기본값은 false임, true로 하면 애초에 정의하지 않은 값은 전달하지 않음. 
     forbidNonWhitelisted: true, // 기본값 false, ture로 하면 정의한 값이 아니면 에러를 냄.
