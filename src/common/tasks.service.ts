@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable, LoggerService } from "@nestjs/common";
 import { Cron, SchedulerRegistry } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import { readdir, unlink } from "fs/promises";
@@ -7,6 +7,7 @@ import { Movie } from "src/movie/entity/movie.entity";
 import { Repository } from "typeorm";
 import { Logger } from "@nestjs/common";
 import { DefaultLogger } from "./logger/default.logger";
+import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 
 
 @Injectable()
@@ -17,18 +18,20 @@ export class TasksService{
         @InjectRepository(Movie)
         private readonly movieRepository: Repository<Movie>,
         private readonly schedulerRegistry: SchedulerRegistry,
-        private readonly logger: DefaultLogger,
+        // private readonly logger: DefaultLogger,
+        @Inject(WINSTON_MODULE_NEST_PROVIDER)  // winston에서는 log의 기본 출력이 json 형태임. 색도 없음. 
+        private readonly logger: LoggerService,
     ){}
 
     @Cron('*/5 * * * * *')
     logEverySecond(){
         // nestjs에서 제공해주는 레벨의 중요도 순서 fatal에 가까울수록 무조건 보여야 하는 로그고 verbose에 가까울수록 안보여도 되는 로그임. 이 순서는 항상 지켜줘야 함
-        this.logger.fatal('FATAL 레벨 로그'); // 지금 당장 해결해야 하는 문제. 절대 일어나면 안되는 문제일 때 사용
-        this.logger.error('ERROR 레벨 로그'); // 실제로 중요한 문제가 생겼을 때 사용
-        this.logger.warn('WARN 레벨 로그'); // 일어나면 안되는 일은 맞지만 프로그램을 실행하는데에는 문제가 없는 경우 사용
-        this.logger.log('LOG 레벨 로그'); // 정보성 메시지를 작성할 때 사용. 
-        this.logger.debug('DEBUG 레벨 로그'); // 개발환경에서 중요한 로그들을 작성할 때 사용
-        this.logger.verbose('VERBOSE 레벨 로그'); // 진짜 중요하지 않은 내용일 때 씀
+        this.logger.fatal('FATAL 레벨 로그', null, TasksService.name); // 지금 당장 해결해야 하는 문제. 절대 일어나면 안되는 문제일 때 사용. null은 에러를 넣어주면 에러를 볼 수 있음. TasksService.name 넣어줘야 context가 출력됨. 
+        this.logger.error('ERROR 레벨 로그', null, TasksService.name); // 실제로 중요한 문제가 생겼을 때 사용, null은 fatal이랑 error에만 있음 
+        this.logger.warn('WARN 레벨 로그', TasksService.name); // 일어나면 안되는 일은 맞지만 프로그램을 실행하는데에는 문제가 없는 경우 사용
+        this.logger.log('LOG 레벨 로그', TasksService.name); // 정보성 메시지를 작성할 때 사용. 
+        this.logger.debug('DEBUG 레벨 로그', TasksService.name); // 개발환경에서 중요한 로그들을 작성할 때 사용
+        this.logger.verbose('VERBOSE 레벨 로그', TasksService.name); // 진짜 중요하지 않은 내용일 때 씀
     }
     // [Nest] 43515  - 01/07/2025, 2:51:37 PM     LOG [TasksService] 1초마다 실행!
     // 이런식으로 로그가 나오게 됨. [Nest] -> 실행한 프로세스 이름. 

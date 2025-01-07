@@ -21,11 +21,13 @@ import { ResponseTimeInterceptor } from './common/interceptor/response-time.inte
 import { ForbiddenExceptionFilter } from './common/filter/forbidden.filter';
 import { QueryFailedExceptionFilter } from './common/filter/query-failed.filter';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import { MovieUserLike } from './movie/entity/movie-user-like.entity';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ThrottleInterceptor } from './common/interceptor/throttle.interceptor';
 import { ScheduleModule } from '@nestjs/schedule';
+import { WinstonModule } from 'nest-winston';
+import * as winston from 'winston';
 
 // app.module은 중앙화의 역할만 함. app.service, app.controller도 직접 쓰기보단 모듈화로 처리
 @Module({
@@ -87,6 +89,29 @@ import { ScheduleModule } from '@nestjs/schedule';
     //   synchronize: true,  // 자동으로 코드와 맞게 데이터베이스를 싱크시키라는 것. 때문에 개발할때만 true로 해주고 production에서는 false로 함. production에서 싱크 맞추는 것은 마이그레이션에서 함
     // }), 
     ScheduleModule.forRoot(),
+    WinstonModule.forRoot({
+      level: 'debug', // 로깅 할 최소 레벨
+      transports: [
+        new winston.transports.Console({ // winston 사용시 transport 옵션은 필수로 들어가얌. 로그를 전달하거나 저장하는 것 
+          format: winston.format.combine( 
+            winston.format.colorize({ // log에 색을 넣고 싶을 때 쓰는 옵션
+              all: true,
+            }),
+            winston.format.timestamp(),
+            winston.format.printf(info => `${info.timestamp} [${info.context}] ${info.level} ${info.message}`) // 어떤 포멧이든 만들어 낼 수 있음. 
+          ),
+        }),
+        // 파일로 로그 저장하기 
+        new winston.transports.File({
+          dirname: join(process.cwd(), 'logs'), // logs 폴더에 저장됨
+          filename: 'logs.log', // logs.log로 파일명 저장
+          format: winston.format.combine( // 파일에도 format 넣어주면 이 형태로 저장 됨 
+            winston.format.timestamp(),
+            winston.format.printf(info => `${info.timestamp} [${info.context}] ${info.level} ${info.message}`) // 어떤 포멧이든 만들어 낼 수 있음. 
+          ),
+        }) 
+      ],
+    }),
     MovieModule,
     DirectorModule,
     GenreModule,
