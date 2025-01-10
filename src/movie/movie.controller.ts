@@ -1,4 +1,4 @@
-import { Controller, Request, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, ClassSerializerInterceptor, ParseIntPipe, BadRequestException, NotAcceptableException, ParseFloatPipe, ParseBoolPipe, ParseArrayPipe, ParseUUIDPipe, UseGuards, UploadedFile, UploadedFiles } from '@nestjs/common';
+import { Controller, Request, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, ClassSerializerInterceptor, ParseIntPipe, BadRequestException, NotAcceptableException, ParseFloatPipe, ParseBoolPipe, ParseArrayPipe, ParseUUIDPipe, UseGuards, UploadedFile, UploadedFiles, Version, VERSION_NEUTRAL } from '@nestjs/common';
 import { MovieService } from './movie.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
@@ -17,7 +17,23 @@ import { QueryRunner as QR} from 'typeorm';
 import { CacheKey, CacheTTL, CacheInterceptor as CI} from '@nestjs/cache-manager';
 import { Throttle } from 'src/auth/decorator/throttle.decorator';
 
-@Controller('movie')
+// controlelr에 버저닝 적용 
+@Controller({
+  path: 'movie',
+  version: '2'
+})
+export class MovieControllerV2{
+  @Get()
+  getMovies(){
+    return [];
+  }
+}
+
+@Controller({
+  path: 'movie',
+  version: '1', // header type은 header 안에 version : 1 이렇게 키값과 버전값을 넣어주면 적용됨. 엔드포인트에(path) 넣지 않음 
+  // version: VERSION_NEUTRAL, // 버전 default 값 처리할 때는 VERSION_NEUTRAL 넣어주면 됨, 이걸 쓸 때는 movie.module의 controler에서 순서를 잘 적용해줘야함 
+})
 @UseInterceptors(ClassSerializerInterceptor) // class transfomer를 MovieController에 적용하겠다는 것.
 export class MovieController {
   constructor(private readonly movieService: MovieService) {}
@@ -29,6 +45,7 @@ export class MovieController {
     count: 5,
     unit: 'minute',
   })
+  // @Version('5') // 메서드에 버전 적용한 것. 메서드에 하면 이게 우선으로 적용됨, 무조건 /v5로만 사용가능. 여기도 배열로 여러 버전 적용 가능함 
   getMovies(
     @Query() dto: GetMoviesDto,
     @UserId() userId?: number,

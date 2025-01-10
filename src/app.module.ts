@@ -156,9 +156,11 @@ export class AppModule implements NestModule{
     ).exclude({ // login과 register 라우터는 basic 토큰이 들어가기 때문에 BearerTokenMiddleware에서 예외처리 해줌
       path: 'auth/login',
       method: RequestMethod.POST,
+      // version: ['1', '2'],  // version 적용하려면 여기에서도 version 설정 해줘야함
     }, {
       path: 'auth/register',
       method: RequestMethod.POST,
+      // version: ['1', '2'],  // version 적용하려면 여기에서도 version 설정 해줘야함
     })
     .forRoutes('*') // '*' 이렇게 하면 전체 라우트에 적용시킨 다는 것
   }
