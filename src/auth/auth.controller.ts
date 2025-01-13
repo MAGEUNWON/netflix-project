@@ -3,25 +3,36 @@ import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './strategy/local.strategy';
 import { JwtAuthGuard } from './strategy/jwt.strategy';
 import { Public } from './decorator/public.decorator';
+import { ApiBasicAuth, ApiBearerAuth } from '@nestjs/swagger';
+import { Authorization } from './decorator/authorization.decorator';
 
 @Controller('auth')
+@ApiBearerAuth() // swagger에서 bearer token 인증을 활성화하기 위한 것. 
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   // 회원 가입
   @Public()
+  @ApiBasicAuth()
   @Post('register')
   // authorization: Basic $token 값이 string으로 들어감. 
-  registerUser(@Headers('authorization') token: string){ // Headers는 기본으로 쓰이는 Headers도 따로 있기 때문에 꼭 @nestjs/common에 직접 import 해줘야 함. 
+  registerUser(@Authorization() token:string) { // swagger적용시 authorization decorator만들고 나면 이렇게 변경해 줄 수 있음
     return this.authService.register(token);
   }
+  // registerUser(@Headers('authorization') token: string){ // Headers는 기본으로 쓰이는 Headers도 따로 있기 때문에 꼭 @nestjs/common에 직접 import 해줘야 함. 
+  //   return this.authService.register(token);
+  // }
 
   // login
-  @Public()
+  @Public() 
+  @ApiBasicAuth() // swagger에서 basicAuth 로그인 후 그 값을 authorization header에 넣어주기 위한 것. 이렇게 해주면 auth/login 옆에 자물쇠 버튼이 생김. 토큰 인증이 활성화 됐다는 뜻임.
   @Post('login')
-  loginUser(@Headers('authorization') token: string){
+  loginUser(@Authorization() token: string) { // swagger적용시 authorization decorator만들고 나면 이렇게 변경해 줄 수 있음
     return this.authService.login(token);
   }
+  // loginUser(@Headers('authorization') token: string){
+  //   return this.authService.login(token);
+  // }
 
   // Token block
   @Post('token/block')

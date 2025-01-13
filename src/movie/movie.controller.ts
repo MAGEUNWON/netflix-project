@@ -16,24 +16,27 @@ import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
 import { QueryRunner as QR} from 'typeorm';
 import { CacheKey, CacheTTL, CacheInterceptor as CI} from '@nestjs/cache-manager';
 import { Throttle } from 'src/auth/decorator/throttle.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 // controlelr에 버저닝 적용 
-@Controller({
-  path: 'movie',
-  version: '2'
-})
-export class MovieControllerV2{
-  @Get()
-  getMovies(){
-    return [];
-  }
-}
+// @Controller({
+//   path: 'movie',
+//   version: '2'
+// })
+// export class MovieControllerV2{
+//   @Get()
+//   getMovies(){
+//     return [];
+//   }
+// }
 
-@Controller({
-  path: 'movie',
-  version: '1', // header type은 header 안에 version : 1 이렇게 키값과 버전값을 넣어주면 적용됨. 엔드포인트에(path) 넣지 않음 
+// @Controller({
+  // path: 'movie',
+  // version: '1', // header type은 header 안에 version : 1 이렇게 키값과 버전값을 넣어주면 적용됨. 엔드포인트에(path) 넣지 않음 
   // version: VERSION_NEUTRAL, // 버전 default 값 처리할 때는 VERSION_NEUTRAL 넣어주면 됨, 이걸 쓸 때는 movie.module의 controler에서 순서를 잘 적용해줘야함 
-})
+// })
+@Controller('movie')
+@ApiBearerAuth()
 @UseInterceptors(ClassSerializerInterceptor) // class transfomer를 MovieController에 적용하겠다는 것.
 export class MovieController {
   constructor(private readonly movieService: MovieService) {}
