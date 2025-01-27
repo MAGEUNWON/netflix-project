@@ -16,7 +16,7 @@ import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
 import { QueryRunner as QR} from 'typeorm';
 import { CacheKey, CacheTTL, CacheInterceptor as CI} from '@nestjs/cache-manager';
 import { Throttle } from 'src/auth/decorator/throttle.decorator';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 // controlelr에 버저닝 적용 
 // @Controller({
@@ -37,6 +37,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 // })
 @Controller('movie')
 @ApiBearerAuth()
+@ApiTags('movie')
 @UseInterceptors(ClassSerializerInterceptor) // class transfomer를 MovieController에 적용하겠다는 것.
 export class MovieController {
   constructor(private readonly movieService: MovieService) {}
@@ -47,6 +48,17 @@ export class MovieController {
   @Throttle({
     count: 5,
     unit: 'minute',
+  })
+  @ApiOperation({ // 엔드포인트에 대한 설명을 추가할 수 있음 
+    description: '[Movie]를 Pagination 하는 API'
+  })
+  @ApiResponse({ // 무한하게 추가 할 수 있음. 상태코드 설명해줄 수 있음
+    status: 200,
+    description: '성공적으로 API Pagination을 실행 했을 때!!'
+  })
+  @ApiResponse({ // 무한하게 추가 할 수 있음
+    status: 400,
+    description: 'Pagination 데이터를 잘못 입력 했을 때!!'
   })
   // @Version('5') // 메서드에 버전 적용한 것. 메서드에 하면 이게 우선으로 적용됨, 무조건 /v5로만 사용가능. 여기도 배열로 여러 버전 적용 가능함 
   getMovies(

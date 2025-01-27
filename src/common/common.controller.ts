@@ -1,9 +1,10 @@
 import { BadRequestException, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @Controller('common')
 @ApiBearerAuth()
+@ApiTags('common')
 export class CommonController {
     // post 요청으로 파일 업로드하는 api 작업. 파일을 post 할 때 같이 올리는 것이 아니라 파일은 미리 common endpoin에 올려놓은 후 파일 이름만 가지고 createMovieDto에 이름을 넘겨주면 그 파일을 영구 저장소로(s3 같은 것) 옮기는 작업을 하기 위한 것
     @Post('video')
